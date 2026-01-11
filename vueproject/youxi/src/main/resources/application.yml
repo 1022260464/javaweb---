@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: demo
+  datasource:
+    url: jdbc:mysql://localhost:3306/game
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 123456
+#  datasource:
+#      url: jdbc:mysql://122.51.54.52:3306/game?
+#        useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+#      driver-class-name: com.mysql.cj.jdbc.Driver
+#      username: game
+#      password: 3EMiJKTD4spRSX5e
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+server:
+  port: 8082
+logging:
+  level:
+    org.springframework.jdbc.support.JdbcTransactionManager: debug
+    com.github.pagehelper: DEBUG
+
+aliyun:
+  oss:
+    endpoint: https://oss-cn-hangzhou.aliyuncs.com
+    bucketName: my-web-fenghongtao
+    region: cn-hangzhou
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+pagehelper:
+  helper-dialect: mysql
+  reasonable: false
+  support-methods-arguments: false
+  params: count=countSql
+  auto-runtime-dialect: true
+  close-conn: true

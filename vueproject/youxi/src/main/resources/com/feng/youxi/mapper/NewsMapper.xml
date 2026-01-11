@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.feng.youxi.mapper.NewsMapper">
+    <insert id="add">
+        insert into game_news (news_id,title,content,category,author,status,cover_image,summary,tags,create_time,update_time,publish_time) values
+        (#{newsId},#{title},#{content},#{category},#{author},#{status},#{coverImage},#{summary},#{tags},#{createTime},#{updateTime},#{publishTime})
+    </insert>
+    <insert id="addViewCount">
+        update game_news set view_count = view_count + 1 where news_id = #{newsId}
+    </insert>
+    <update id="addLike">
+        update game_news set like_count = like_count + 1 where news_id = #{newsId}
+    </update>
+    <update id="update" parameterType="com.feng.youxi.pojo.News">
+        UPDATE game_news
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="category != null and category != ''">category = #{category},</if>
+            <if test="author != null and author != ''">author = #{author},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="coverImage != null and coverImage != ''">cover_image = #{coverImage},</if>
+            <if test="summary != null and summary != ''">summary = #{summary},</if>
+            <if test="tags != null and tags != ''">tags = #{tags},</if>
+            <if test="publishTime != null">publish_time = #{publishTime},</if>
+            update_time = #{updateTime}
+        </set>
+        WHERE news_id = #{newsId}
+    </update>
+
+    <delete id="delete" parameterType="java.util.List">
+        DELETE FROM game_news WHERE news_id in
+        <foreach collection="list" item="newsId" open="(" separator="," close=")">
+            #{newsId}
+        </foreach>
+    </delete>
+
+    <select id="list" resultType="com.feng.youxi.pojo.News">
+        select * from game_news
+        <where>
+            <if test="title != null and title != ''">
+<!--               title is not null-->
+                and title like concat('%',#{title},'%')
+            </if>
+            <if test="category != null and category != ''">
+                and category = #{category}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+    <select id="getById" resultType="com.feng.youxi.pojo.News">
+        select * from game_news where news_id = #{newsId}
+    </select>
+    <select id="NewsFenxi" resultType="com.feng.youxi.pojo.NewsFenxiResult">
+        SELECT title, view_count, like_count
+        FROM game_news
+        WHERE status = 1
+        <if test="category != null and category != ''">
+            AND category = #{category}
+        </if>
+        <if test="startDate != null">
+            AND create_time >= #{startDate}
+        </if>
+        ORDER BY
+        <choose>
+            <when test="orderBy == 'likeCount'">
+                like_count DESC
+            </when>
+            <otherwise>
+                view_count DESC
+            </otherwise>
+        </choose>
+        LIMIT #{topN}
+    </select>
+</mapper>

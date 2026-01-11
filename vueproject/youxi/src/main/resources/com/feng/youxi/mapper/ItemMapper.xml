@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.feng.youxi.mapper.ItemMapper">
+    <resultMap id="ItemsMap" type="com.feng.youxi.pojo.Items">
+        <id column="product_id" property="productId"/>
+        <result column="product_name" property="productName"/>
+        <result column="description" property="description"/>
+        <result column="product_images" property="productImages"/>
+        <result column="category" property="category"/>
+        <result column="price" property="price"/>
+        <result column="detail_content" property="detailContent"/>
+        <result column="status" property="status"/>
+        <result column="supplier_info" property="supplierInfo"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="avg_rating" property="avgRating"/>
+        <result column="total_reviews" property="totalReviews"/>
+        <result column="last_updated" property="lastUpdated"/>
+    </resultMap>
+    <insert id="createRatting">
+        INSERT  INTO product_rating_agg(product_id, avg_rating, total_reviews, last_updated)
+        VALUES (#{productId}, #{avgRating}, #{totalReviews}, #{lastUpdated})
+    </insert>
+    <insert id="createItem">
+        insert into game_product(product_id, product_name, description, product_images,
+                                category, status, supplier_info, created_at, updated_at, price, detail_content)
+        values (#{productId}, #{productName}, #{description}, #{productImages},
+                #{category}, #{status}, #{supplierInfo}, #{createdAt}, #{updatedAt}, #{price}, #{detailContent})
+    </insert>
+
+    <update id="updateItem">
+        update game_product
+        <set>
+            <if test="productName != null">
+                product_name = #{productName},
+            </if>
+            <if test="description != null and description != ''">
+                description = #{description},
+            </if>
+            <if test="productImages!= null">
+                product_images = #{productImages},
+            </if>
+            <if test="category != null">
+                category = #{category},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="supplierInfo != null">
+                supplier_info = #{supplierInfo},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="detailContent != null">
+                detail_content = #{detailContent},
+            </if>
+            <if test="updatedAt != null">
+                updated_at = #{updatedAt}
+            </if>
+        </set>
+        where product_id = #{productId}
+    </update>
+    <update id="updateRatting">
+        update product_rating_agg
+        <set>
+            <if test="avgRating != null">
+                avg_rating = #{avgRating},
+            </if>
+            <if test="totalReviews != null">
+                total_reviews = #{totalReviews},
+            </if>
+            <if test="lastUpdated != null">
+                last_updated = #{lastUpdated},
+            </if>
+        </set>
+        where product_id = #{productId}
+    </update>
+    <delete id="deleteItem" parameterType="java.util.List">
+        delete from game_product where product_id in
+        <foreach collection="list" item="productId" open="(" separator="," close=")">
+         #{productId}
+        </foreach>
+--    删除主键，对应外键删除
+    </delete>
+
+    <!--条件查询评分表和主表两个表中所有符合要求，相同productid对应的数据-->
+    <select id="list" resultType="com.feng.youxi.pojo.Items">
+        select * from game_product gp join product_rating_agg pra on gp.product_id = pra.product_id
+        <where>
+            <if test="productName != null and productName != ''">
+            and product_name like concat('%',#{productName},'%')
+            </if>
+            <if test="category != null and category != ''">
+            and category = #{category}
+            </if>
+            <if test="status != null">
+            and status = #{status}
+            </if>
+            <if test="avgRating!= null">
+            and avg_rating >= #{avgRating}
+            </if>
+            <if test="supplierInfo != null and supplierInfo != ''">
+            and supplier_info like concat('%',#{supplierInfo},'%')
+            </if>
+            <if test="price != null">
+            and price &lt;= #{price}
+            </if>
+        </where>
+    </select>
+    <select id="getById" resultMap="ItemsMap">
+        select gp.product_id, gp.product_name, gp.description, gp.product_images,
+               gp.category, gp.status, gp.supplier_info, gp.created_at, gp.updated_at,gp.price,gp.detail_content,
+               pra.avg_rating, pra.total_reviews, pra.last_updated
+        from game_product gp
+        join product_rating_agg pra on gp.product_id = pra.product_id
+        where gp.product_id = #{productId}
+    </select>
+<!--    查询单个商品价格历史，用于创建价格分析-->
+    <select id="getItemPrice" resultType="com.feng.youxi.pojo.Price">
+        select * from product_price_history where product_id = #{productId}
+    </select>
+</mapper>
